@@ -184,7 +184,7 @@ func (cfg *config) load() error {
 	} else {
 		dir = filepath.Join(os.Getenv("HOME"), ".config", "memo")
 	}
-	if err := os.MkdirAll(dir, 0700); err != nil {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return fmt.Errorf("cannot create directory: %v", err)
 	}
 	file := filepath.Join(dir, "config.toml")
@@ -225,7 +225,7 @@ func (cfg *config) load() error {
 	}
 
 	dir = filepath.Join(dir, "_posts")
-	os.MkdirAll(dir, 0700)
+	os.MkdirAll(dir, 0o700)
 	cfg.MemoDir = filepath.ToSlash(dir)
 	cfg.Editor = os.Getenv("EDITOR")
 	if cfg.Editor == "" {
@@ -236,7 +236,7 @@ func (cfg *config) load() error {
 	cfg.GrepCmd = "grep -nH ${PATTERN} ${FILES}"
 	cfg.AssetsDir = "."
 	dir = filepath.Join(confDir, "plugins")
-	os.MkdirAll(dir, 0700)
+	os.MkdirAll(dir, 0o700)
 	cfg.PluginsDir = filepath.ToSlash(dir)
 
 	dir = os.Getenv("MEMODIR")
@@ -456,7 +456,7 @@ func fileExists(filename string) bool {
 }
 
 func copyFromStdin(filename string) error {
-	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
@@ -478,7 +478,8 @@ func cmdNew(c *cli.Context) error {
 	now := time.Now()
 	if c.Args().Present() {
 		title = c.Args().First()
-		file = now.Format("2006-01-02-") + escape(title) + ".md"
+		// file = now.Format("2006-01-02-") + escape(title) + ".md"
+		file = now.Format("20060102T150405-") + escape(title) + ".md"
 	} else {
 		fmt.Print("Title: ")
 		scanner := bufio.NewScanner(os.Stdin)
@@ -490,11 +491,13 @@ func cmdNew(c *cli.Context) error {
 		}
 		title = scanner.Text()
 		if title == "" {
-			title = now.Format("2006-01-02")
+			// title = now.Format("2006-01-02")
+			title = now.Format("20060102T150405")
 			file = title + ".md"
 
 		} else {
-			file = now.Format("2006-01-02-") + escape(title) + ".md"
+			// file = now.Format("2006-01-02-") + escape(title) + ".md"
+			file = now.Format("20060102T150405-") + escape(title) + ".md"
 		}
 	}
 	file = filepath.Join(cfg.MemoDir, file)
@@ -524,7 +527,8 @@ func cmdNew(c *cli.Context) error {
 	err = t.Execute(f, struct {
 		Title, Date, Tags, Categories string
 	}{
-		title, now.Format("2006-01-02 15:04"), "", "",
+		// title, now.Format("2006-01-02 15:04"), "", "",
+		title, now.Format("2006-01-02"), "", "",
 	})
 	f.Close()
 	if err != nil {
@@ -565,7 +569,7 @@ func (cfg *config) filterFiles() ([]string, error) {
 		// Some select tools return non-zero, and some return zero.
 		// This part can't handle whether the command execute failure or
 		// the select command exit non-zero.
-		//return fmt.Errorf("%v: you need to install peco first: https://github.com/peco/peco", err)
+		// return fmt.Errorf("%v: you need to install peco first: https://github.com/peco/peco", err)
 		return nil, err
 	}
 	if buf.Len() == 0 {
@@ -796,7 +800,9 @@ func cmdServe(c *cli.Context) error {
 			for _, file := range files {
 				entries = append(entries, entry{
 					Name: file,
-					Body: template.HTML(runewidth.Truncate(firstline(filepath.Join(cfg.MemoDir, file)), 80, "...")),
+					Body: template.HTML(
+						runewidth.Truncate(firstline(filepath.Join(cfg.MemoDir, file)), 80, "..."),
+					),
 				})
 			}
 			w.Header().Set("content-type", "text/html")
@@ -886,7 +892,7 @@ func listPlugins(fn func(string)) error {
 			if err != nil {
 				continue
 			}
-			if m := fi.Mode(); !m.IsDir() && m&0111 != 0 {
+			if m := fi.Mode(); !m.IsDir() && m&0o111 != 0 {
 				fn(filepath.Join(cfg.PluginsDir, fi.Name()))
 			}
 		}
