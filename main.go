@@ -479,7 +479,7 @@ func cmdNew(c *cli.Context) error {
 	if c.Args().Present() {
 		title = c.Args().First()
 		// file = now.Format("2006-01-02-") + escape(title) + ".md"
-		file = now.Format("20060102T150405-") + escape(title) + ".md"
+		file = now.Format("2006-01-02T15:04:05-") + escape(title) + ".md"
 	} else {
 		fmt.Print("Title: ")
 		scanner := bufio.NewScanner(os.Stdin)
@@ -497,7 +497,7 @@ func cmdNew(c *cli.Context) error {
 
 		} else {
 			// file = now.Format("2006-01-02-") + escape(title) + ".md"
-			file = now.Format("20060102T150405-") + escape(title) + ".md"
+			file = now.Format("2006-01-02T15:04:05-") + escape(title) + ".md"
 		}
 	}
 	file = filepath.Join(cfg.MemoDir, file)
